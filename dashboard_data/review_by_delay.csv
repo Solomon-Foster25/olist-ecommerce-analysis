@@ -1,0 +1,5 @@
+delivery_status,review_score_avg,sample_size,sort_key
+on time,4.29,89443,-147.0
+1-3 days late,3.29,1852,1.0
+4-7 days late,2.1,1748,4.0
+8+ days late,1.7,2781,8.0
