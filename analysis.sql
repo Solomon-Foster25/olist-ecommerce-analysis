@@ -23,7 +23,7 @@ SELECT COUNT(*) AS delivered_but_no_date
 FROM orders
 WHERE order_status = 'delivered'
   AND order_delivered_customer_date IS NULL;
-:
+-- customer_id is unique PER ORDER; customer_unique_id identifies the actual person
 SELECT COUNT(DISTINCT customer_id)        AS customer_ids,
        COUNT(DISTINCT customer_unique_id) AS actual_people
 FROM customers;
@@ -40,6 +40,8 @@ WITH monthly AS (
     FROM orders o
     JOIN order_items oi ON oi.order_id = o.order_id
     WHERE o.order_status = 'delivered'
+      AND o.order_purchase_timestamp >= '2017-01-01'   -- exclude sparse start-up months
+      AND o.order_purchase_timestamp <  '2018-09-01'   -- exclude incomplete final months
     GROUP BY month
 )
 SELECT
@@ -57,7 +59,7 @@ ORDER BY month;
   R$726K (Dec), then leveled off around R$900K/month through Aug 2018.
    - Biggest month: November 2017 at R$988K.
    - Anomaly: Nov 2017 revenue jumped 52% over October, driven by Black
-  Friday (Nov 24): 1,176 orders vs. a typical October day of ~149.0,
+  Friday (Nov 24): 1,176 orders vs. a typical October day of ~149,
   roughly 7.9x normal volume.
 */
 
@@ -80,7 +82,7 @@ GROUP BY category
 ORDER BY revenue DESC
 LIMIT 10;
 
-/* Your findings for Q2:
+/* Findings for Q2:
    - Top 3 categories: health_beauty (R$1.23M), watches_gifts (R$1.17M),
   bed_bath_table (R$1.02M), close to each other, with no single dominant category.
    - Concentration: the top 10 categories = 62% of revenue.
@@ -114,7 +116,7 @@ GROUP BY delivery_status
 ORDER BY MIN(d.days_late);
 
 
-/* Your findings for Q3:
+/* Findings for Q3:
    - Avg score, on time: 4.29 stars (n = 89,443)
    - Avg score, late: scores fall as delays grow: 3.29 (1–3 days), 2.10 (4–7),
   1.70 (8+ days). Even a short delay costs a full star.
@@ -152,11 +154,12 @@ GROUP BY c.customer_state
 ORDER BY avg_delivery_days DESC;
 
 
-/* Your findings for Q4:
+/* Findings for Q4:
    - Most customers: SP (42%), then RJ (13%) and MG (12%); top 3 = ~2/3 of customers
    - Fastest: SP at 8.8 days avg
-   - Slowest: RR, AP, AM at 26–29 days, but low late rates (estimates
-  account for the distance) and small samples (n = 40–140)
+   - Slowest: RR, AP, AM at 26–29 days, but AP and AM have some of the lowest
+  late rates (3.0%, 2.8%) because estimates account for the distance.
+  Small samples (n = 40–140), so treat with caution
    - Highest late rate: AL (21%), MA (17%), SE (15%), Northeast states
    where delivery estimates are too optimistic
    - Biggest opportunity: RJ, the 2nd-largest market with a 12% late rate
@@ -188,7 +191,7 @@ SELECT
 FROM orders_per_customer;
 
 
-/* Your findings for Q5:
+/* Findings for Q5:
   - Repeat purchase rate: 3% (2801 of 93358 customers ordered 2+ times)
   - What this suggests: Olist depends almost entirely on new customers.
   Even a small increase in repeat buyers would be meaningful revenue,
